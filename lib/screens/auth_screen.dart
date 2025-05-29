@@ -31,11 +31,18 @@ class _AuthScreenState extends State<AuthScreen> {
 
     final isValid = formState.validate();
 
-    if (!isValid || (!isLogin && selectedImage == null)) {
+    // Ensure image is picked for sign-up
+    if (!isLogin && isValid && selectedImage == null) {
       ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill out all fields correctly.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please pick an image.')));
+      return;
+    }
+
+    // Only save the form if it's valid
+    if (!isValid) {
+      return;
     }
 
     formState.save();
@@ -58,9 +65,8 @@ class _AuthScreenState extends State<AuthScreen> {
         );
 
         final user = userCredentials.user;
-        if (user == null) {
-          return;
-        }
+        if (user == null) return;
+
         final userId = user.uid;
 
         String? base64Image;
@@ -72,7 +78,7 @@ class _AuthScreenState extends State<AuthScreen> {
         final userData = {
           'email': emailTxt,
           'username': nameTxt,
-          'image_base64': base64Image,
+          if (base64Image != null) 'image_base64': base64Image,
         };
 
         await FirebaseFirestore.instance
